@@ -1,81 +1,52 @@
-# Standard python libraries
-import os
-import time
-import requests
-
-# Essential DS libraries
-import numpy as np
-import pandas as pd
+from PreparingCSV import DataPreparation
+from TrainingModel import ModelTraining
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import train_test_split
+import numpy as np
 import torch
 
-# LightAutoML presets, task and report generation
-from lightautoml.automl.presets.tabular_presets import TabularAutoML, TabularUtilizedAutoML
-from lightautoml.tasks import Task
+def main():
+    # Step 1: Data Preparation
+    TARGET_NAME = 'Arr_Delay'
+    RANDOM_STATE = 59
+    N_THREADS = 4
+    timeout = 60 * 3
+    np.random.seed(RANDOM_STATE)
+    torch.set_num_threads(N_THREADS)
+    preparator = DataPreparation(
+        input_file='data/US_flights_2023.csv',
+        weather_file='data/weather_meteo_by_airport.csv',
+        output_file='data/prepared_data.csv'
+    )
+    flights, weather = preparator.load_data()
+    prepared_data = preparator.preprocess(flights, weather)
+    preparator.save_data(prepared_data)
 
-RANDOM_STATE = 59
-N_THREADS = 6
+    # Step 2: Model Training
+    model_trainer = ModelTraining(
+        data_path='data/prepared_data.csv',
+        target_name='Arr_Delay',
+        n_threads=6,
+        timeout=timeout,
+        n_folds=5
+    )
+    train_data, test_data = model_trainer.load_and_split_data()
+    automl_model, oof_predictions, test_predictions = model_trainer.train_model(train_data, test_data)
 
-np.random.seed(RANDOM_STATE)
-torch.set_num_threads(N_THREADS)
+    if np.any(np.isnan(oof_predictions.data)) or np.any(np.isnan(train_data[TARGET_NAME].values)):
+        print("Detected NaN in predictions or target values.")
+        print(f"NaN in oof_preds: {np.isnan(oof_predictions.data).sum()}")
+        print(f"NaN in target: {np.isnan(train_data[TARGET_NAME].values).sum()}")
+    else:
+        print(f'OOF score: {roc_auc_score(train_data[TARGET_NAME].values, oof_predictions.data[:, 0])}')
 
+    # Проверяем тестовые данные перед вычислением метрики
+    if np.any(np.isnan(test_predictions.data)) or np.any(np.isnan(test_data[TARGET_NAME].values)):
+        print("Detected NaN in test predictions or test target values.")
+        print(f"NaN in te_preds: {np.isnan(test_predictions.data).sum()}")
+        print(f"NaN in test target: {np.isnan(test_data[TARGET_NAME].values).sum()}")
+    else:
+        print(f'HOLDOUT score: {roc_auc_score(test_data[TARGET_NAME].values, test_predictions.data[:, 0])}')
+    print("Pipeline execution completed.")
 
-TARGET_NAME = 'Arr_Delay'
-
-data = pd.read_csv('data/prepared_data.csv')
-data.sample(5)
-
-tr_data, te_data = train_test_split(
-    data,
-    test_size=0.1,
-    stratify=data[TARGET_NAME],
-    random_state=RANDOM_STATE
-)
-
-tr_data = tr_data.dropna()
-te_data = te_data.dropna()
-
-print(f'Data splitted. Parts sizes: tr_data = {tr_data.shape}, te_data = {te_data.shape}')
-
-tr_data.head()
-
-# specify task type
-#  'binary' - for binary classification.
-#  'reg' - for regression.
-#  'multiclass' - for multiclass classification.
-task = Task(
-    'reg',  # required
-    loss='mse',
-    metric='mse'
-)
-
-# specify feature roles
-roles = {
-    'target': TARGET_NAME,  # required
-    'drop': ['FlightDate', 'Dep_Airport', 'Arr_Airport']
-}
-
-N_FOLDS = 5
-TIMEOUT = 60 * 45  # 10 minutes
-
-utilized_automl = TabularUtilizedAutoML(
-    task=task,
-    timeout=TIMEOUT,
-    cpu_limit=N_THREADS,
-    reader_params={'n_jobs': N_THREADS, 'cv': N_FOLDS, 'random_state': RANDOM_STATE},
-)
-
-tr_data = tr_data.dropna()
-te_data = te_data.dropna()
-
-oof_preds = utilized_automl.fit_predict(tr_data, roles=roles, verbose=1)
-
-print(utilized_automl.create_model_str_desc())
-
-te_preds = utilized_automl.predict(te_data)
-print(f'Prediction for te_data:\n{te_preds}\nShape = {te_preds.shape}')
-
-
-print(f'OOF score: {roc_auc_score(tr_data[TARGET_NAME].values, oof_preds.data[:, 0])}')
-print(f'HOLDOUT score: {roc_auc_score(te_data[TARGET_NAME].values, te_preds.data[:, 0])}')
+if __name__ == "__main__":
+    main()
