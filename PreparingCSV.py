@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-
-class DataPreparation:
+class PreparingCSV:
     def __init__(self, input_file, weather_file, output_file):
         self.input_file = input_file
         self.weather_file = weather_file

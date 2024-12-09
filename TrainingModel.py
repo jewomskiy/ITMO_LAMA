@@ -3,11 +3,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 # LightAutoML presets, task and report generation
-from lightautoml.automl.presets.tabular_presets import TabularAutoML, TabularUtilizedAutoML
+from lightautoml.automl.presets.tabular_presets import TabularUtilizedAutoML
 from lightautoml.tasks import Task
 
 
-class ModelTraining:
+class TrainingModel:
     def __init__(self, data_path, target_name, n_threads, timeout, n_folds):
         self.data_path = data_path
         self.target_name = target_name
@@ -26,7 +26,7 @@ class ModelTraining:
         return train_data.dropna(), test_data.dropna()
 
     def train_model(self, train_data, test_data):
-        task = Task('reg', loss='mse', metric='mse')
+        task = Task('binary', loss='logloss', metric='auc')
         roles = {
             'target': self.target_name,
             'drop': ['FlightDate', 'Dep_Airport', 'Arr_Airport', 'airport_id_dep', 'time_dep']
