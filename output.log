@@ -1,75 +1,81 @@
+Processing file 15QeKV1zD9YWw46PpXZf6duLeTaDvSeT2 US_flights_2023.csv
+Processing file 1U1fMyhvA_7GHUzOEovCj8Mv75qgL8fPg weather_meteo_by_airport.csv
 Loading data...
 Preprocessing data...
 Prepared dataset size: (3371702, 25)
 Data saved to data/prepared_data.csv
 Sample of prepared data:
-  FlightDate Tail_Number Dep_Airport  ... wspd_dep pres_dep  airport_id_dep
-0 2023-07-12      N577NN         ECP  ...      5.1   1017.2             ECP
-1 2023-01-01      N491UA         PHX  ...     15.5   1006.4             PHX
-2 2023-08-06      N460AN         OGG  ...     24.1   1016.6             OGG
-3 2023-09-14      N960SW         DIK  ...     15.1   1014.8             DIK
-4 2023-10-26      N184SY         SAN  ...      6.1   1016.2             SAN
+  FlightDate Tail_Number Dep_Airport Arr_Delay Arr_Airport  Delay_LastAircraft        time  tavg  tmin  tmax  ...    time_dep  tavg_dep  tmin_dep  tmax_dep  prcp_dep snow_dep  wdir_dep  wspd_dep  pres_dep  airport_id_dep
+0 2023-04-18      N933WN         BUR         1         ABQ                   0  2023-04-18  17.9   8.9  24.4  ...  2023-04-18      14.3      12.2      17.8       0.0      0.0     169.0       9.7    1013.8             BUR
+1 2023-01-29      N321NV         CAK         0         SAV                   0  2023-01-29  11.9   5.2  15.8  ...  2023-01-29       5.3       0.0       7.8       4.8      0.0     243.0      18.7    1019.7             CAK
+2 2023-04-16      N284JN         PNS         1         MIA                   0  2023-04-16  27.6  22.8  31.1  ...  2023-04-16      21.1      16.7      25.0       0.0      0.0     307.0      14.4    1015.3             PNS
+3 2023-07-21      N339FR         PHL         2         MDW                   1  2023-07-21  23.3  20.0  27.2  ...  2023-07-21      25.0      20.0      30.0      15.2      0.0     312.0      10.8    1008.3             PHL
+4 2023-12-25      N132HQ         DCA         0         PBI                   0  2023-12-25  23.2  20.6  24.4  ...  2023-12-25       8.8       4.4      16.1       0.0      0.0      36.0       6.5    1028.4             DCA
 
 [5 rows x 25 columns]
 3371702
-[15:40:06] Start automl [1mutilizator[0m with listed constraints:
-[15:40:06] - time: 120.00 seconds
-[15:40:06] - CPU: 6 cores
-[15:40:06] - memory: 16 GB
+[15:55:21] Start automl [1mutilizator[0m with listed constraints:
+[15:55:21] - time: 900.00 seconds
+[15:55:21] - CPU: 6 cores
+[15:55:21] - memory: 16 GB
 
-[15:40:06] [1mIf one preset completes earlier, next preset configuration will be started[0m
+[15:55:21] [1mIf one preset completes earlier, next preset configuration will be started[0m
 
-[15:40:06] ==================================================
-[15:40:06] Start 0 automl preset configuration:
-[15:40:06] [1mconf_0_sel_type_0.yml[0m, random state: {'reader_params': {'random_state': 42}, 'nn_params': {'random_state': 42}, 'general_params': {'return_all_predictions': False}}
-[15:40:06] Stdout logging level is INFO.
-[15:40:06] Task: reg
+[15:55:21] ==================================================
+[15:55:21] Start 0 automl preset configuration:
+[15:55:21] [1mconf_0_sel_type_0.yml[0m, random state: {'reader_params': {'random_state': 42}, 'nn_params': {'random_state': 42}, 'general_params': {'return_all_predictions': False}}
+[15:55:21] Stdout logging level is INFO.
+[15:55:21] Task: reg
 
-[15:40:06] Start automl preset with listed constraints:
-[15:40:06] - time: 120.00 seconds
-[15:40:06] - CPU: 6 cores
-[15:40:06] - memory: 16 GB
+[15:55:21] Start automl preset with listed constraints:
+[15:55:21] - time: 900.00 seconds
+[15:55:21] - CPU: 6 cores
+[15:55:21] - memory: 16 GB
 
-[15:40:06] [1mTrain data shape: (2360191, 25)[0m
+[15:55:21] [1mTrain data shape: (2360191, 25)[0m
 
-[15:40:10] Layer [1m1[0m train process start. Time left 116.63 secs
-[15:40:20] Start fitting [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m ...
-[15:40:30] Time limit exceeded after calculating fold 0
+[15:55:25] Layer [1m1[0m train process start. Time left 896.73 secs
+[15:55:57] Start fitting [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m ...
+[15:56:51] Fitting [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m finished. score = [1m-0.7583555112854837[0m
+[15:56:51] [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m fitting and predicting completed
+[15:56:51] Time left 810.89 secs
 
-[15:40:30] Fitting [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m finished. score = [1m-0.7674562242940668[0m
-[15:40:30] [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m fitting and predicting completed
-[15:40:30] Time left 96.42 secs
+[15:57:20] Start fitting [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m ...
+[15:58:33] Time limit exceeded after calculating fold 1
 
-[15:40:38] Start fitting [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m ...
-[15:41:33] Time limit exceeded after calculating fold 0
+[15:58:33] Fitting [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m finished. score = [1m-0.5721838279727537[0m
+[15:58:33] [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m fitting and predicting completed
+[15:58:33] Start fitting [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m ...
+[16:01:57] Time limit exceeded after calculating fold 1
 
-[15:41:33] Fitting [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m finished. score = [1m-0.5687941857739263[0m
-[15:41:33] [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m fitting and predicting completed
-[15:41:33] Start fitting [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m ...
-[15:43:18] Time limit exceeded after calculating fold 0
+[16:01:57] Fitting [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m finished. score = [1m-0.5792361070168773[0m
+[16:01:57] [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m fitting and predicting completed
+[16:01:57] Start hyperparameters optimization for [1mLvl_0_Pipe_1_Mod_3_Tuned_CatBoost[0m ... Time budget is 1.00 secs
+[16:01:57] Copying TaskTimer may affect the parent PipelineTimer, so copy will create new unlimited TaskTimer
+[16:02:53] Hyperparameters optimization for [1mLvl_0_Pipe_1_Mod_3_Tuned_CatBoost[0m completed
+[16:02:53] Start fitting [1mLvl_0_Pipe_1_Mod_3_Tuned_CatBoost[0m ...
+[16:11:07] Fitting [1mLvl_0_Pipe_1_Mod_3_Tuned_CatBoost[0m finished. score = [1m-0.5814487689008638[0m
+[16:11:07] [1mLvl_0_Pipe_1_Mod_3_Tuned_CatBoost[0m fitting and predicting completed
+[16:11:07] Time left -45.12 secs
 
-[15:43:18] Fitting [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m finished. score = [1m-0.5823352415501353[0m
-[15:43:18] [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m fitting and predicting completed
-[15:43:18] Time left -72.01 secs
+[16:11:07] Time limit exceeded. Last level models will be blended and unused pipelines will be pruned.
 
-[15:43:18] Time limit exceeded. Last level models will be blended and unused pipelines will be pruned.
+[16:11:07] [1mLayer 1 training completed.[0m
 
-[15:43:18] [1mLayer 1 training completed.[0m
+[16:11:07] Blending: optimization starts with equal weights and score [1m-0.6384027945657691[0m
+[16:11:08] Blending: iteration [1m0[0m: score = [1m-0.5721838279727537[0m, weights = [1m[0. 1. 0. 0.][0m
+[16:11:10] Blending: iteration [1m1[0m: score = [1m-0.5721838279727537[0m, weights = [1m[0. 1. 0. 0.][0m
+[16:11:10] Blending: no score update. Terminated
 
-[15:43:18] Blending: optimization starts with equal weights and score [1m-0.6241071726373594[0m
-[15:43:19] Blending: iteration [1m0[0m: score = [1m-0.5687941857739263[0m, weights = [1m[0. 1. 0.][0m
-[15:43:20] Blending: iteration [1m1[0m: score = [1m-0.5687941857739263[0m, weights = [1m[0. 1. 0.][0m
-[15:43:20] Blending: no score update. Terminated
+[16:11:10] [1mAutoml preset training completed in 948.27 seconds[0m
 
-[15:43:20] [1mAutoml preset training completed in 193.88 seconds[0m
-
-[15:43:20] Model description:
+[16:11:10] Model description:
 Final prediction for new objects (level 0) = 
-	 1.00000 * (1 averaged models Lvl_0_Pipe_1_Mod_0_LightGBM) 
+	 1.00000 * (2 averaged models Lvl_0_Pipe_1_Mod_0_LightGBM) 
 
-[15:43:20] ==================================================
+[16:11:10] ==================================================
 Model training completed.
-Mean Squared Error: 0.590265468277891
-Mean Absolute Error: 0.5670899228441972
-R-squared: 0.4733844995498657
+Mean Squared Error: 0.5932960321482933
+Mean Absolute Error: 0.5692709886802059
+R-squared: 0.46997326612472534
 Pipeline execution completed.
