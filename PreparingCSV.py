@@ -14,7 +14,7 @@ class PreparingCSV:
         weather_data = pd.read_csv(self.weather_file)
         return flights_data, weather_data
 
-    def preprocess(self, flights_data, weather_data):
+    def preprocess(self, flights_data, weather_data, random_state):
         print("Preprocessing data...")
 
         # Selecting required columns
@@ -22,10 +22,20 @@ class PreparingCSV:
         flights_data = flights_data[flights_columns]
 
         # Sampling 50% of the data
-        flights_data = flights_data.sample(frac=0.5, random_state=59).reset_index(drop=True)
+        flights_data = flights_data.sample(frac=0.5, random_state=random_state).reset_index(drop=True)
 
         # Converting `Arr_Delay` to binary
-        flights_data['Arr_Delay'] = np.where(flights_data['Arr_Delay'] > 0, 1, 0)
+        bins = [-np.inf, 0, 15, 30, np.inf]
+        labels = [0, 1, 2, 3]
+        # 0 = Нет задержки
+        # 1 = Задержка до 15 минут
+        # 2 = От 15 до 30 минут
+        # 3 = Задержка свыше 30 минут
+        flights_data['Arr_Delay'] = pd.cut(
+            flights_data['Arr_Delay'],
+            bins=bins,
+            labels=labels
+        )
 
         # Formatting dates
         flights_data['FlightDate'] = pd.to_datetime(flights_data['FlightDate'])

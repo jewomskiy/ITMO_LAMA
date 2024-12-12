@@ -1,0 +1,75 @@
+Loading data...
+Preprocessing data...
+Prepared dataset size: (3371702, 25)
+Data saved to data/prepared_data.csv
+Sample of prepared data:
+  FlightDate Tail_Number Dep_Airport  ... wspd_dep pres_dep  airport_id_dep
+0 2023-07-12      N577NN         ECP  ...      5.1   1017.2             ECP
+1 2023-01-01      N491UA         PHX  ...     15.5   1006.4             PHX
+2 2023-08-06      N460AN         OGG  ...     24.1   1016.6             OGG
+3 2023-09-14      N960SW         DIK  ...     15.1   1014.8             DIK
+4 2023-10-26      N184SY         SAN  ...      6.1   1016.2             SAN
+
+[5 rows x 25 columns]
+3371702
+[15:40:06] Start automl [1mutilizator[0m with listed constraints:
+[15:40:06] - time: 120.00 seconds
+[15:40:06] - CPU: 6 cores
+[15:40:06] - memory: 16 GB
+
+[15:40:06] [1mIf one preset completes earlier, next preset configuration will be started[0m
+
+[15:40:06] ==================================================
+[15:40:06] Start 0 automl preset configuration:
+[15:40:06] [1mconf_0_sel_type_0.yml[0m, random state: {'reader_params': {'random_state': 42}, 'nn_params': {'random_state': 42}, 'general_params': {'return_all_predictions': False}}
+[15:40:06] Stdout logging level is INFO.
+[15:40:06] Task: reg
+
+[15:40:06] Start automl preset with listed constraints:
+[15:40:06] - time: 120.00 seconds
+[15:40:06] - CPU: 6 cores
+[15:40:06] - memory: 16 GB
+
+[15:40:06] [1mTrain data shape: (2360191, 25)[0m
+
+[15:40:10] Layer [1m1[0m train process start. Time left 116.63 secs
+[15:40:20] Start fitting [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m ...
+[15:40:30] Time limit exceeded after calculating fold 0
+
+[15:40:30] Fitting [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m finished. score = [1m-0.7674562242940668[0m
+[15:40:30] [1mLvl_0_Pipe_0_Mod_0_LinearL2[0m fitting and predicting completed
+[15:40:30] Time left 96.42 secs
+
+[15:40:38] Start fitting [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m ...
+[15:41:33] Time limit exceeded after calculating fold 0
+
+[15:41:33] Fitting [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m finished. score = [1m-0.5687941857739263[0m
+[15:41:33] [1mLvl_0_Pipe_1_Mod_0_LightGBM[0m fitting and predicting completed
+[15:41:33] Start fitting [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m ...
+[15:43:18] Time limit exceeded after calculating fold 0
+
+[15:43:18] Fitting [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m finished. score = [1m-0.5823352415501353[0m
+[15:43:18] [1mLvl_0_Pipe_1_Mod_2_CatBoost[0m fitting and predicting completed
+[15:43:18] Time left -72.01 secs
+
+[15:43:18] Time limit exceeded. Last level models will be blended and unused pipelines will be pruned.
+
+[15:43:18] [1mLayer 1 training completed.[0m
+
+[15:43:18] Blending: optimization starts with equal weights and score [1m-0.6241071726373594[0m
+[15:43:19] Blending: iteration [1m0[0m: score = [1m-0.5687941857739263[0m, weights = [1m[0. 1. 0.][0m
+[15:43:20] Blending: iteration [1m1[0m: score = [1m-0.5687941857739263[0m, weights = [1m[0. 1. 0.][0m
+[15:43:20] Blending: no score update. Terminated
+
+[15:43:20] [1mAutoml preset training completed in 193.88 seconds[0m
+
+[15:43:20] Model description:
+Final prediction for new objects (level 0) = 
+	 1.00000 * (1 averaged models Lvl_0_Pipe_1_Mod_0_LightGBM) 
+
+[15:43:20] ==================================================
+Model training completed.
+Mean Squared Error: 0.590265468277891
+Mean Absolute Error: 0.5670899228441972
+R-squared: 0.4733844995498657
+Pipeline execution completed.

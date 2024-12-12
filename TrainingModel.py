@@ -15,21 +15,23 @@ class TrainingModel:
         self.timeout = timeout
         self.n_folds = n_folds
 
-    def load_and_split_data(self):
+    def load_and_split_data(self, random_state):
         data = pd.read_csv(self.data_path)
+        data = data.dropna()
+        print(data.__len__())
         train_data, test_data = train_test_split(
             data,
-            test_size=0.1,
+            test_size=0.3,
             stratify=data[self.target_name],
-            random_state=59
+            random_state=random_state
         )
         return train_data.dropna(), test_data.dropna()
 
     def train_model(self, train_data, test_data):
-        task = Task('binary', loss='logloss', metric='auc')
+        task = Task('reg', loss='mse', metric='mae')
         roles = {
             'target': self.target_name,
-            'drop': ['FlightDate', 'Dep_Airport', 'Arr_Airport', 'airport_id_dep', 'time_dep']
+            'drop': ['FlightDate', 'Dep_Airport', 'Arr_Airport', 'airport_id_dep', 'time_dep', 'Tail_Number']
         }
 
         automl_model = TabularUtilizedAutoML(
