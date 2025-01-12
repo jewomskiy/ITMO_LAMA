@@ -1,3 +1,4 @@
+
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -19,27 +20,29 @@ class PreparingCSV:
 
         # Selecting required columns
         flights_columns = ['FlightDate', 'Tail_Number', 'Dep_Airport', 'Arr_Delay', 'Arr_Airport', 'Delay_LastAircraft']
-        flights_data = flights_data[flights_columns]
+        flights_data = flights_data[flights_columns].copy()
+
+        # Setting negative delays to 0
+        flights_data.loc[:, 'Arr_Delay'] = flights_data['Arr_Delay'].apply(lambda x: max(x, 0))
+        upper_bound = flights_data['Arr_Delay'].quantile(0.95)
+        flights_data['Arr_Delay'] = flights_data['Arr_Delay'].clip(upper=upper_bound)
 
         # Sampling 50% of the data
-        flights_data = flights_data.sample(frac=0.5, random_state=random_state).reset_index(drop=True)
-
-        # Converting `Arr_Delay` to binary
-        bins = [-np.inf, 0, 15, 30, np.inf]
-        labels = [0, 1, 2, 3]
-        # 0 = Нет задержки
-        # 1 = Задержка до 15 минут
-        # 2 = От 15 до 30 минут
-        # 3 = Задержка свыше 30 минут
-        flights_data['Arr_Delay'] = pd.cut(
-            flights_data['Arr_Delay'],
-            bins=bins,
-            labels=labels
-        )
+        flights_data = flights_data.sample(frac=0.1, random_state=random_state).reset_index(drop=True)
 
         # Formatting dates
         flights_data['FlightDate'] = pd.to_datetime(flights_data['FlightDate'])
         weather_data['FlightDate'] = pd.to_datetime(weather_data['time'])
+
+        # Reducing rows with no delay (Arr_Delay == 0) by 50%
+        no_delay = flights_data[flights_data['Arr_Delay'] == 0]
+        delayed = flights_data[flights_data['Arr_Delay'] != 0]
+        if len(no_delay) > 1:  # Ensure sufficient data for sampling
+            no_delay_sample = no_delay.sample(frac=0.5, random_state=random_state)
+            flights_data = pd.concat([no_delay_sample, delayed]).reset_index(drop=True)
+
+        # Sorting by FlightDate
+        flights_data = flights_data.sort_values(by='FlightDate').reset_index(drop=True)
 
         # Merging flights with weather data
         merged_data = pd.merge(
@@ -60,6 +63,8 @@ class PreparingCSV:
 
         # Dropping duplicate column
         merged_data.drop(columns=['airport_id'], inplace=True)
+        merged_data = merged_data.dropna(thresh=len(merged_data.columns) * 0.8)  # Удаление строк, где пропущено >20%
+        merged_data.fillna(merged_data.median(numeric_only=True), inplace=True)
 
         print(f"Prepared dataset size: {merged_data.shape}")
         return merged_data

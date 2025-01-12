@@ -18,16 +18,16 @@ class TrainingModel:
     def load_and_split_data(self, random_state):
         data = pd.read_csv(self.data_path)
         data = data.dropna()
-        print(data.__len__())
+        print(f"Loaded dataset size: {data.shape}")
+
         train_data, test_data = train_test_split(
             data,
-            test_size=0.3,
-            stratify=data[self.target_name],
+            test_size=0.2,
             random_state=random_state
         )
-        return train_data.dropna(), test_data.dropna()
+        return train_data, test_data
 
-    def train_model(self, train_data, test_data):
+    def train_model(self, train_data, test_data, random_state):
         task = Task('reg', loss='mse', metric='mae')
         roles = {
             'target': self.target_name,
@@ -38,7 +38,7 @@ class TrainingModel:
             task=task,
             timeout=self.timeout,
             cpu_limit=self.n_threads,
-            reader_params={'n_jobs': self.n_threads, 'cv': self.n_folds, 'random_state': 59}
+            reader_params={'n_jobs': self.n_threads, 'cv': self.n_folds, 'random_state': random_state},
         )
 
         oof_predictions = automl_model.fit_predict(train_data, roles=roles, verbose=1)

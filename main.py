@@ -44,7 +44,7 @@ def main():
                 n_folds=5
             )
             train_data, test_data = model_trainer.load_and_split_data(RANDOM_STATE)
-            automl_model, oof_predictions, test_predictions = model_trainer.train_model(train_data, test_data)
+            automl_model, oof_predictions, test_predictions = model_trainer.train_model(train_data, test_data, RANDOM_STATE)
 
             # Check data before output our test our model
             if np.any(np.isnan(test_predictions.data)) or np.any(np.isnan(test_data[TARGET_NAME].values)):
