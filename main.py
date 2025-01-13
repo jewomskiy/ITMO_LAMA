@@ -1,7 +1,7 @@
 import sys
 from PreparingCSV import PreparingCSV
 from TrainingModel import TrainingModel
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_log_error
 import numpy as np
 import torch
 import gdown
@@ -45,6 +45,8 @@ def main():
             )
             train_data, test_data = model_trainer.load_and_split_data(RANDOM_STATE)
             automl_model, oof_predictions, test_predictions = model_trainer.train_model(train_data, test_data, RANDOM_STATE)
+            # accurate_fi = automl_model.model.get_feature_scores('accurate', test_data, silent=True)
+            # accurate_fi.set_index('Feature')['Importance'].plot.bar(figsize=(30, 10), grid=True)
 
             # Check data before output our test our model
             if np.any(np.isnan(test_predictions.data)) or np.any(np.isnan(test_data[TARGET_NAME].values)):
@@ -60,6 +62,23 @@ def main():
                 print(f'Mean Squared Error: {mse}')
                 print(f'Mean Absolute Error: {mae}')
                 print(f'R-squared: {r2}')
+
+                # Убираем отрицательные значения перед экспоненциальным преобразованием
+                oof_predictions.data[:, 0] = np.clip(oof_predictions.data[:, 0], 0, None)
+                test_predictions.data[:, 0] = np.clip(test_predictions.data[:, 0], 0, None)
+
+                # Преобразование экспоненты с обработкой NaN и инфинити
+                oof_pred_exp = np.nan_to_num(np.exp(oof_predictions.data[:, 0]) - 1, nan=0.0, posinf=1e6, neginf=-1e6)
+                test_pred_exp = np.nan_to_num(np.exp(test_predictions.data[:, 0]) - 1, nan=0.0, posinf=1e6, neginf=-1e6)
+
+                # Вычисление метрик
+                try:
+                    oof_score = root_mean_squared_log_error(train_data[TARGET_NAME].values, oof_pred_exp)
+                    holdout_score = root_mean_squared_log_error(test_data[TARGET_NAME].values, test_pred_exp)
+                    print(f"OOF score: {oof_score}")
+                    print(f"HOLDOUT score: {holdout_score}")
+                except ValueError as e:
+                    print(f"Error calculating metrics: {e}")
             print("Pipeline execution completed.")
         finally:
             sys.stdout = sys.__stdout__  # Восстановление стандартного вывода
