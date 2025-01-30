@@ -6,6 +6,8 @@ import numpy as np
 import torch
 import gdown
 from pathlib import Path
+import matplotlib.pyplot as plt
+import shap
 
 url = 'https://drive.google.com/drive/folders/18houVS5ebR_Bw3_lQ3bNZ5X09lhaFsim'
 
@@ -13,7 +15,7 @@ def main():
     TARGET_NAME = 'Arr_Delay'
     RANDOM_STATE = int(input('Enter a random state value: '))
     N_THREADS = int(input('Enter number of threads: '))
-    HOURS = int(input('How many hours do you want? '))
+    HOURS = int(input('How many minutes do you want? '))
     timeout = 60 * HOURS
     # Перенаправляем вывод в файл
     with open('output.log', 'w') as log_file:
@@ -32,21 +34,32 @@ def main():
                 output_file='data/prepared_data.csv'
             )
             flights, weather = preparator.load_data()
-            prepared_data = preparator.preprocess(flights, weather, RANDOM_STATE)
+            prepared_data = preparator.preprocess(flights, weather, RANDOM_STATE, 'JFK')
             preparator.save_data(prepared_data)
 
             # Step 2: Model Training
             model_trainer = TrainingModel(
                 data_path='data/prepared_data.csv',
-                target_name='Arr_Delay',
+                target_name=TARGET_NAME,
                 n_threads=N_THREADS,
                 timeout=timeout,
                 n_folds=5
             )
             train_data, test_data = model_trainer.load_and_split_data(RANDOM_STATE)
             automl_model, oof_predictions, test_predictions = model_trainer.train_model(train_data, test_data, RANDOM_STATE)
-            # accurate_fi = automl_model.model.get_feature_scores('accurate', test_data, silent=True)
-            # accurate_fi.set_index('Feature')['Importance'].plot.bar(figsize=(30, 10), grid=True)
+
+            # explainer = shap.Explainer(automl_model, test_data)
+            # shap_values = explainer(test_data)
+
+            # shap.summary_plot(shap_values, test_data)
+            accurate_fi = automl_model.get_feature_scores('accurate', test_data, silent=True)
+            accurate_fi.set_index('Feature')['Importance'].plot.bar(figsize=(30, 10), grid=True)
+
+            plt.xlabel('Features')
+            plt.ylabel('Importance')
+            plt.title('Feature Importance')
+            plt.savefig('feature_importance.png')
+            plt.show()
 
             # Check data before output our test our model
             if np.any(np.isnan(test_predictions.data)) or np.any(np.isnan(test_data[TARGET_NAME].values)):

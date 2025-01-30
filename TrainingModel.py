@@ -31,7 +31,6 @@ class TrainingModel:
         task = Task('reg')
         roles = {
             'target': self.target_name,
-            'drop': ['Dep_Airport', 'Arr_Airport', 'airport_id_dep', 'time_dep', 'Tail_Number', 'time']
         }
 
         automl_model = TabularUtilizedAutoML(
