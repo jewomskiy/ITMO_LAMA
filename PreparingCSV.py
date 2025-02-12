@@ -1,6 +1,7 @@
-
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from datetime import datetime
 
 class PreparingCSV:
@@ -17,57 +18,37 @@ class PreparingCSV:
         print(weather_data.describe().to_csv("my_description_weather.csv"))
         return flights_data, weather_data
 
-    def preprocess(self, flights_data, weather_data, random_state, departure_airport=None):
+    def preprocess(self, flights_data, weather_data, random_state):
         print("Preprocessing data...")
 
         # Selecting required columns
-        flights_columns = ['FlightDate', 'Day_Of_Week', 'Tail_Number', 'Dep_Airport', 'Arr_Delay', 'Arr_Airport', 'Delay_LastAircraft',
-                           'Aicraft_age', 'Airline']
+        flights_columns = ['FlightDate', 'Tail_Number', 'Dep_Airport', 'Dep_Delay', 'Arr_Airport', 'Delay_LastAircraft', 'Flight_Duration', 'DepTime_label']
         flights_data = flights_data[flights_columns].copy()
-        weather_columns = ['time', 'tmin', 'tmax', 'wdir', 'wspd', 'airport_id']
 
-        weather_data = weather_data[weather_columns].copy()
         # Setting negative delays to 0
         flights_data.loc[:, 'Delay_LastAircraft'] = flights_data['Delay_LastAircraft'].apply(lambda x: max(x, 0))
 
-        flights_data = pd.get_dummies(flights_data, columns=['Airline'])
-
         # Sampling 50% of the data
-        flights_data = flights_data.sample(frac=0., random_state=random_state).reset_index(drop=True)
-
-        if departure_airport:
-            flights_data = flights_data[flights_data['Dep_Airport'] == departure_airport]
+        flights_data = flights_data.sample(frac=0.6, random_state=random_state).reset_index(drop=True)
 
         # Formatting dates
         flights_data['FlightDate'] = pd.to_datetime(flights_data['FlightDate'])
+        weather_columns = ['tmin', 'tmax', 'time', 'airport_id']
+        weather_data = weather_data[weather_columns].copy()
         weather_data['FlightDate'] = pd.to_datetime(weather_data['time'])
-
-        # Вывод типов данных для столбцов в flights_data
-        print("Типы данных в flights_data:")
-        print(flights_data.dtypes)
-
-        # Вывод типов данных для столбцов в weather_data
-        print("Типы данных в weather_data:")
-        print(weather_data.dtypes)
-
-        # Также можно проверить, какие столбцы являются числовыми
-        numeric_columns = flights_data.select_dtypes(include=[np.number]).columns
-        print("Числовые столбцы в flights_data:", numeric_columns)
-
-        # Для weather_data
-        numeric_columns_weather = weather_data.select_dtypes(include=[np.number]).columns
-        print("Числовые столбцы в weather_data:", numeric_columns_weather)
-
-
 
         # - Для категориальных колонок можно заполнить наиболее частым значением
         def clip_values(df, column, lower, upper):
             df[column] = np.clip(df[column], lower, upper)
             return df
 
-        # Устанавливаем разумные границы для каждого показателя
-        flights_data = clip_values(flights_data, 'Arr_Delay', 0, 60)
+        flights_data = clip_values(flights_data, 'Dep_Delay', 0, 60)
         flights_data = clip_values(flights_data, 'Delay_LastAircraft', 0, 60)
+        # weather_data = clip_values(weather_data, 'tavg', -40, 40)  # Средняя температура
+        # weather_data = clip_values(weather_data, 'tmin', -50, 35)  # Минимальная температура
+        # weather_data = clip_values(weather_data, 'wspd', 0, 50)  # Скорость ветра (макс. ~50 м/с)
+        # weather_data = clip_values(weather_data, 'prcp', 0, 300) #осадки
+
         # 4. Проверка финального набора данных
         print("Обработанные данные о погоде:")
         print(weather_data.describe())
@@ -94,10 +75,54 @@ class PreparingCSV:
 
         # Dropping duplicate column
         merged_data.drop(columns=['airport_id'], inplace=True)
-        merged_data = merged_data.dropna(thresh=len(merged_data.columns) * 0.8)  # Удаление строк, где пропущено >20%
+        # merged_data = merged_data.dropna(thresh=len(merged_data.columns) * 0.8)  # Удаление строк, где пропущено >20%
         merged_data.fillna(merged_data.median(numeric_only=True), inplace=True)
 
+        def calculate_flight_order(data):
+            # Создаём вспомогательный столбец для сортировки по времени вылета
+            time_order = {'Night': 0, 'Morning': 1, 'Afternoon': 2, 'Evening': 3}
+            data['DepTime_order'] = data['DepTime_label'].map(time_order)
+
+            # Сортируем данные для корректного вычисления порядка
+            data = data.sort_values(by=['Tail_Number', 'FlightDate', 'DepTime_order']).reset_index(drop=True)
+
+            # Группировка по Tail_Number и FlightDate
+            groups = data.groupby(['Tail_Number', 'FlightDate'])
+
+            # Добавляем порядковый номер вылета
+            data['Flight_Order'] = groups.cumcount() + 1
+
+            # Проверка совпадения аэропорта вылета и прилёта предыдущего рейса
+            data['Valid_Dep_Airport'] = groups['Arr_Airport'].shift() == data['Dep_Airport']
+
+            # Рассчитываем накопительную сумму задержек за день
+            data['PreviousFlights_Delay'] = groups['Delay_LastAircraft'].cumsum() - data['Delay_LastAircraft']
+
+            # Убираем вспомогательный столбец
+            data.drop(columns=['DepTime_order'], inplace=True)
+            data.drop(columns=['Valid_Dep_Airport'], inplace=True)
+
+            # Заполняем значения NaN в первых рейсах дня
+            data['PreviousFlights_Delay'].fillna(0, inplace=True)
+            return data
+
+        # Применяем функцию
+        merged_data = calculate_flight_order(merged_data)
+        merged_data = merged_data[merged_data['Dep_Airport'].isin(['CLE', 'ONT'])]
+        # winter_months = [5, 6, 7, 8, 9]
+        # merged_data = merged_data[merged_data['FlightDate'].dt.month.isin(winter_months)]
+        # merged_data = pd.get_dummies(merged_data, columns=['Airline'], prefix='Airline')
         print(f"Prepared dataset size: {merged_data.shape}")
+
+        merged_data = merged_data.sort_values(by='FlightDate').reset_index(drop=True)
+
+        # Save heatmap of correlations
+        plt.figure(figsize=(12, 10))
+        sns.heatmap(merged_data.corr(), annot=True, fmt=".2f", cmap="coolwarm")
+        plt.title("Correlation Heatmap")
+        plt.savefig("heatmap.png")
+        plt.close()
+
         return merged_data
 
     def save_data(self, merged_data):

@@ -12,7 +12,7 @@ import shap
 url = 'https://drive.google.com/drive/folders/18houVS5ebR_Bw3_lQ3bNZ5X09lhaFsim'
 
 def main():
-    TARGET_NAME = 'Arr_Delay'
+    TARGET_NAME = 'Dep_Delay'
     RANDOM_STATE = int(input('Enter a random state value: '))
     N_THREADS = int(input('Enter number of threads: '))
     HOURS = int(input('How many minutes do you want? '))
@@ -34,7 +34,7 @@ def main():
                 output_file='data/prepared_data.csv'
             )
             flights, weather = preparator.load_data()
-            prepared_data = preparator.preprocess(flights, weather, RANDOM_STATE, 'JFK')
+            prepared_data = preparator.preprocess(flights, weather, RANDOM_STATE)
             preparator.save_data(prepared_data)
 
             # Step 2: Model Training
@@ -57,7 +57,6 @@ def main():
 
             plt.xlabel('Features')
             plt.ylabel('Importance')
-            plt.title('Feature Importance')
             plt.savefig('feature_importance.png')
             plt.show()
 
