@@ -22,7 +22,7 @@ class PreparingCSV:
         print("Preprocessing data...")
 
         # Selecting required columns
-        flights_columns = ['FlightDate', 'Tail_Number', 'Dep_Airport', 'Dep_Delay', 'Arr_Airport', 'Delay_LastAircraft', 'Flight_Duration', 'DepTime_label']
+        flights_columns = ['FlightDate', 'Tail_Number', 'Dep_Delay', 'Airline', 'Dep_Airport', 'Arr_Airport', 'Delay_LastAircraft', 'Flight_Duration', 'DepTime_label']
         flights_data = flights_data[flights_columns].copy()
 
         # Setting negative delays to 0
@@ -104,20 +104,62 @@ class PreparingCSV:
 
             # Заполняем значения NaN в первых рейсах дня
             data['PreviousFlights_Delay'].fillna(0, inplace=True)
+
+            # Добавляем новый столбец для подсчета количества вылетов за день для выбранного аэропорта
+            data['Daily_Departure_Count'] = data.groupby(['FlightDate', 'Dep_Airport'])['Flight_Order'].transform(
+                'count')
+
+            data['DayOfWeek'] = data['FlightDate'].dt.dayofweek
+
+            # Добавляем признак "месяц"
+            data['Month'] = data['FlightDate'].dt.month
+
+            # Добавляем признак "разница температур"
+            data['TempDiff'] = data['tmax'] - data['tmin']
+
+            return data
+
+        def add_avg_delay_percentage(data, window=14):
+            # Создаем колонку с бинарным индикатором задержки (1 - задержка, 0 - нет)
+            data['Is_Delayed'] = (data['Dep_Delay'] > 0).astype(int)
+
+            # Группируем по аэропорту и дате, чтобы рассчитать процент задержек за день
+            daily_delay_percentage = data.groupby(['Dep_Airport', 'FlightDate'])['Is_Delayed'].mean().reset_index()
+            daily_delay_percentage.rename(columns={'Is_Delayed': 'Daily_Delay_Percentage'}, inplace=True)
+
+            # Добавляем колонку с датой для расчета скользящего среднего
+            daily_delay_percentage['FlightDate'] = pd.to_datetime(daily_delay_percentage['FlightDate'])
+
+            # Сортируем данные для корректного расчета скользящего среднего
+            daily_delay_percentage = daily_delay_percentage.sort_values(by=['Dep_Airport', 'FlightDate'])
+
+            # Рассчитываем скользящее среднее за предыдущие N дней
+            daily_delay_percentage['Avg_Delay_Percentage_Last_N_Days'] = daily_delay_percentage.groupby('Dep_Airport')[
+                'Daily_Delay_Percentage'].transform(
+                lambda x: x.rolling(window=window, min_periods=1).mean().shift(1)
+            )
+
+            # Объединяем с основным датасетом
+            data = pd.merge(data,
+                            daily_delay_percentage[['Dep_Airport', 'FlightDate', 'Avg_Delay_Percentage_Last_N_Days']],
+                            on=['Dep_Airport', 'FlightDate'], how='left')
+
             return data
 
         # Применяем функцию
         merged_data = calculate_flight_order(merged_data)
-        merged_data = merged_data[merged_data['Dep_Airport'].isin(['CLE', 'ONT'])]
-        # winter_months = [5, 6, 7, 8, 9]
+        merged_data = add_avg_delay_percentage(merged_data)
+        merged_data = merged_data[merged_data['Dep_Airport'].isin(['JFK'])]
+        # winter_months = [6, 7, 8]
         # merged_data = merged_data[merged_data['FlightDate'].dt.month.isin(winter_months)]
         # merged_data = pd.get_dummies(merged_data, columns=['Airline'], prefix='Airline')
+        merged_data = pd.get_dummies(merged_data, columns=['DepTime_label'])
         print(f"Prepared dataset size: {merged_data.shape}")
 
         merged_data = merged_data.sort_values(by='FlightDate').reset_index(drop=True)
 
         # Save heatmap of correlations
-        plt.figure(figsize=(12, 10))
+        plt.figure(figsize=(20, 20))
         sns.heatmap(merged_data.corr(), annot=True, fmt=".2f", cmap="coolwarm")
         plt.title("Correlation Heatmap")
         plt.savefig("heatmap.png")
