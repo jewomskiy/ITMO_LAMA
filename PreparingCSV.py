@@ -149,7 +149,7 @@ class PreparingCSV:
         # Применяем функцию
         merged_data = calculate_flight_order(merged_data)
         merged_data = add_avg_delay_percentage(merged_data)
-        merged_data = merged_data[merged_data['Dep_Airport'].isin(['JFK'])]
+        merged_data = merged_data[merged_data['Dep_Airport'].isin(['DEN'])]
         # winter_months = [6, 7, 8]
         # merged_data = merged_data[merged_data['FlightDate'].dt.month.isin(winter_months)]
         # merged_data = pd.get_dummies(merged_data, columns=['Airline'], prefix='Airline')

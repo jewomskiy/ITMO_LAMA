@@ -24,13 +24,13 @@ def main():
 
             np.random.seed(RANDOM_STATE)
             torch.set_num_threads(N_THREADS)
-            flights_data = Path("data/flights.csv")
-            weather_data = Path("data/weather.csv")
+            flights_data = Path("data/US_flights_2023.csv")
+            weather_data = Path("data/weather_meteo_by_airport.csv")
             if not flights_data.exists() or not weather_data.exists():
                 gdown.download_folder(url)
             preparator = PreparingCSV(
-                input_file='data/flights.csv',
-                weather_file='data/weather.csv',
+                input_file='data/US_flights_2023.csv',
+                weather_file='data/weather_meteo_by_airport.csv',
                 output_file='data/prepared_data.csv'
             )
             flights, weather = preparator.load_data()
