@@ -102,7 +102,7 @@ class PreparingCSV:
 
             # Дополнительные признаки
             data['Daily_Departure_Count'] = data.groupby(['FlightDate', 'Dep_Airport'])['Flight_Order'].transform('count')
-            data['DayOfWeek'] = data['FlightDate'].dt.dayofweek  # День недели (0-6)
+            data['DayOfWeek'] = data['FlightDate'].dt.dayofweek  # День недели (1-7)
             data['Month'] = data['FlightDate'].dt.month          # Месяц (1-12)
             data['TempDiff'] = data['tmax'] - data['tmin']       # Разница температур
             return data
